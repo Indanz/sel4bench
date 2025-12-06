@@ -427,13 +427,24 @@ int main(int argc, char **argv)
             ZF_LOGF_IF(error, "Failed to set client prio");
             client.process.entry_point = bench_funcs[params->client_fn];
 
+            seL4_TCB_SetFlags_t res;
+            seL4_TCBFlag flags_clear = seL4_TCBFlag_NoFlag, flags_set = seL4_TCBFlag_fpuDisabled;
+
+            if (params->fpu) {
+                flags_clear = seL4_TCBFlag_fpuDisabled;
+                flags_set = seL4_TCBFlag_NoFlag;
+            }
             if (params->same_vspace) {
                 error = seL4_TCB_SetPriority(server_thread.process.thread.tcb.cptr, auth, params->server_prio);
                 assert(error == seL4_NoError);
+                res = seL4_TCB_SetFlags(server_thread.process.thread.tcb.cptr, flags_clear, flags_set);
+                assert(res.error == seL4_NoError);
                 server_thread.process.entry_point = bench_funcs[params->server_fn];
             } else {
                 error = seL4_TCB_SetPriority(server_process.process.thread.tcb.cptr, auth, params->server_prio);
                 assert(error == seL4_NoError);
+                res = seL4_TCB_SetFlags(server_process.process.thread.tcb.cptr, flags_clear, flags_set);
+                assert(res.error == seL4_NoError);
                 server_process.process.entry_point = bench_funcs[params->server_fn];
             }
 

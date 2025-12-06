@@ -61,6 +61,7 @@ typedef struct benchmark_params {
     enum overheads overhead_id;
     /* if CONFIG_KERNEL_MCS, should the server be passive? */
     bool passive;
+    bool fpu;
 } benchmark_params_t;
 
 struct overhead_benchmark_params {
@@ -108,6 +109,20 @@ static const benchmark_params_t benchmark_params[] = {
         .length = 0,
         .overhead_id = CALL_OVERHEAD,
         .passive = true,
+    },
+    /* Call fastpath between client and FPU enabled server in different address spaces */
+    {
+        .name        = "seL4_Call",
+        .direction   = DIR_TO,
+        .client_fn   = IPC_CALL_FUNC2,
+        .server_fn   = IPC_REPLYRECV_FUNC2,
+        .same_vspace = false,
+        .client_prio = seL4_MaxPrio - 1,
+        .server_prio = seL4_MaxPrio - 1,
+        .length = 0,
+        .overhead_id = CALL_OVERHEAD,
+        .passive = true,
+        .fpu = true,
     },
     /* ReplyRecv fastpath between server and client in different address spaces */
     {

@@ -93,3 +93,12 @@ target_link_libraries(
 if(AppIpcBench)
     set_property(GLOBAL APPEND PROPERTY sel4benchapps_property "$<TARGET_FILE:ipc>")
 endif()
+
+# Avoid compilers from using SIMD instructions for integer code.
+# If the program faults on a SIMD instruction for your platform,
+# update this code or find another work-around.
+include(CheckCCompilerFlag OPTIONAL)
+check_c_compiler_flag(-mgeneral-regs-only HAS_GENERAL_REGS_ONLY)
+if(HAS_GENERAL_REGS_ONLY)
+    target_compile_options(ipc PRIVATE -mgeneral-regs-only)
+endif()
